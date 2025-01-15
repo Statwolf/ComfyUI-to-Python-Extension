@@ -11,6 +11,7 @@ from argparse import ArgumentParser
 
 import black
 
+RANDOM_SEED = environ.get('RANDOM_SEED', 'false') == 'true'
 
 from comfyui_to_python_utils import (
     import_custom_nodes,
@@ -335,7 +336,7 @@ class CodeGenerator:
         Returns:
             str: Formatted argument as a string.
         """
-        if key == "noise_seed" or key == "seed":
+        if RANDOM_SEED == True and (key == "noise_seed" or key == "seed"):
             return f"{key}=random.randint(1, 2**64)"
         elif isinstance(value, str):
             value = value.replace("\n", "\\n").replace('"', "'")
