@@ -340,7 +340,7 @@ class CodeGenerator:
         if RANDOM_SEED == True and (key == "noise_seed" or key == "seed"):
             return f"{key}=random.randint(1, 2**64)"
         elif isinstance(value, str):
-            value = value.replace("\n", "\\n").replace('"', "'")
+            value = value.replace("\n", " ").replace('"', "'")
             return f'{key}="{value}"'
         elif isinstance(value, dict) and "variable_name" in value:
             return f'{key}={value["variable_name"]}'
