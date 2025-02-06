@@ -13,6 +13,8 @@ from os import environ
 import black
 
 RANDOM_SEED = environ.get('RANDOM_SEED', 'false') == 'true'
+with open('/configs/context.json') as file:
+  CONTEXT_CONFIG = json.load(file)
 
 from comfyui_to_python_utils import (
     import_custom_nodes,
@@ -337,8 +339,12 @@ class CodeGenerator:
         Returns:
             str: Formatted argument as a string.
         """
+
         if RANDOM_SEED == True and (key == "noise_seed" or key == "seed"):
             return f"{key}=random.randint(1, 2**64)"
+        elif isinstance(value, str) == True and value.strip() in CONTEXT_CONFIG:
+            context_value = CONTEXT_CONFIG[value.strip()]
+            return f'{key}=context["{context_value}"]'
         elif isinstance(value, str):
             value = value.replace("\n", " ").replace('"', "'")
             return f'{key}="{value}"'
@@ -399,7 +405,7 @@ class CodeGenerator:
         ]
         # Assemble the main function code, including custom nodes if applicable
         main_function_code = (
-            "def main():\n\t"
+            "def launch(context):\n\t"
             + f"{custom_nodes}with torch.inference_mode():\n\t\t"
             + "\n\t\t".join(speical_functions_code)
             + f"\n\n\t\tfor q in range({queue_size}):\n\t\t"
@@ -409,7 +415,7 @@ class CodeGenerator:
         final_code = "\n".join(
             static_imports
             + imports_code
-            + ["", main_function_code, "", 'if __name__ == "__main__":', "\tmain()"]
+            + ["", main_function_code]
         )
         # Format the final code according to PEP 8 using the Black library
         final_code = black.format_str(final_code, mode=black.Mode())
